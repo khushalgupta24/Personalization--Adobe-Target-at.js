@@ -1,67 +1,29 @@
 import { useEffect } from "react";
 
-function sanitizeViewName(viewName) {
-  if (!viewName) return "home";
+let lastViewName = null;
 
-  return String(viewName)
-    .trim()
-    .replace(/^[/#]+|[/#]+$/g, "") || "home";
+function fireWhenReady(viewName, retries = 40) {
+  if (window.adobe?.target?.triggerView) {
+    window.requestAnimationFrame(() => {
+      window.adobe.target.triggerView(viewName);
+      console.log(`[at.js] triggerView("${viewName}")`);
+    });
+    return;
+  }
+
+  if (retries > 0) {
+    window.setTimeout(() => fireWhenReady(viewName, retries - 1), 100);
+  } else {
+    console.warn(`[at.js] Target library not ready for view "${viewName}"`);
+  }
 }
 
-function waitForAtJs(maxAttempts = 20, delay = 250) {
-  return new Promise((resolve, reject) => {
-    let attempts = 0;
-
-    const check = () => {
-      const canTrigger =
-        typeof window !== "undefined" &&
-        window.adobe &&
-        window.adobe.target &&
-        typeof window.adobe.target.triggerView === "function";
-
-      if (canTrigger) {
-        resolve();
-        return;
-      }
-
-      attempts += 1;
-
-      if (attempts >= maxAttempts) {
-        reject(new Error("Adobe Target at.js is not available on window.adobe.target."));
-        return;
-      }
-
-      window.setTimeout(check, delay);
-    };
-
-    check();
-  });
-}
-
-export default function useTargetView({ viewName }) {
+export default function useTargetView(viewName) {
   useEffect(() => {
-    const currentView = sanitizeViewName(viewName);
-    let isCancelled = false;
+    if (!viewName) return;
+    if (lastViewName === viewName) return;
 
-    async function triggerView() {
-      try {
-        await waitForAtJs();
-
-        if (isCancelled) {
-          return;
-        }
-
-        window.adobe.target.triggerView(currentView);
-        console.info(`[Target at.js] triggerView("${currentView}")`);
-      } catch (error) {
-        console.warn("[Target at.js] Unable to trigger SPA view:", error.message);
-      }
-    }
-
-    triggerView();
-
-    return () => {
-      isCancelled = true;
-    };
+    lastViewName = viewName;
+    fireWhenReady(viewName);
   }, [viewName]);
 }

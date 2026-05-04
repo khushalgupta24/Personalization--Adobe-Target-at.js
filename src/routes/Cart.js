@@ -1,9 +1,7 @@
 import useTargetView from "../hooks/useTargetView";
 
 export default function Cart() {
-  useTargetView({
-    viewName: "cart"
-  });
+  useTargetView("cart");
 
   return (
     <div className="page">
