@@ -1,6 +1,10 @@
 import useTargetView from "../hooks/useTargetView";
 
 export default function Cart() {
+  useEffect(() => {
+    document.title = "Cart";
+  }, []);
+
   useTargetView("cart");
 
   return (

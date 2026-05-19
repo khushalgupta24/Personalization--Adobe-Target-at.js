@@ -1,6 +1,10 @@
 import useTargetView from "../hooks/useTargetView";
 
 export default function Home() {
+  useEffect(() => {
+    document.title = "Home";
+  }, []);
+
   useTargetView("home");
 
   return (
