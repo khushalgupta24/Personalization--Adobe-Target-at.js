@@ -1,4 +1,5 @@
 import useTargetView from "../hooks/useTargetView";
+import { useEffect } from "react";
 
 export default function Home() {
   useEffect(() => {
